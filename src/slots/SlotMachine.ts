@@ -2,8 +2,8 @@ import * as PIXI from 'pixi.js';
 import 'pixi-spine';
 import { Reel } from './Reel';
 import { sound } from '../utils/sound';
-import { AssetLoader } from '../utils/AssetLoader';
-import {Spine} from "pixi-spine";
+import { AssetLoader, SpineAsset } from '../utils/AssetLoader';
+import { Spine } from "pixi-spine";
 
 const REEL_COUNT = 4;
 const SYMBOLS_PER_REEL = 6;
@@ -105,6 +105,8 @@ export class SlotMachine {
                 // If this is the last reel, check for wins and enable spin button
                 if (i === this.reels.length - 1) {
                     setTimeout(() => {
+                        // Ensure spin sound stops when reels are done
+                        sound.stop('Reel spin');
                         this.checkWin();
                         this.isSpinning = false;
 
@@ -138,7 +140,7 @@ export class SlotMachine {
 
     private initSpineAnimations(): void {
         try {
-            const frameSpineData = AssetLoader.getSpine('base-feature-frame.json');
+            const frameSpineData: SpineAsset | undefined = AssetLoader.getSpine('base-feature-frame.json');
             if (frameSpineData) {
                 this.frameSpine = new Spine(frameSpineData.spineData);
 
@@ -152,7 +154,7 @@ export class SlotMachine {
                 this.container.addChild(this.frameSpine);
             }
 
-            const winSpineData = AssetLoader.getSpine('big-boom-h.json');
+            const winSpineData: SpineAsset | undefined = AssetLoader.getSpine('big-boom-h.json');
             if (winSpineData) {
                 this.winAnimation = new Spine(winSpineData.spineData);
 

@@ -1,9 +1,26 @@
-// TODO: Implement sound player using the "howler" package
+import { Howl } from 'howler';
+
+type SoundMap = Record<string, Howl>;
+
+const sounds: SoundMap = {};
+
 export const sound = {
     add: (alias: string, url: string): void => {
-        console.log(`Sound added: ${alias} from ${url}`);
+        if (sounds[alias]) return;
+        sounds[alias] = new Howl({ src: [url] });
     },
     play: (alias: string): void => {
-        console.log(`Playing sound: ${alias}`);
+        const s = sounds[alias];
+        if (!s) {
+            // eslint-disable-next-line no-console
+            console.warn(`Sound '${alias}' not found`);
+            return;
+        }
+        s.play();
+    },
+    stop: (alias: string): void => {
+        const s = sounds[alias];
+        if (!s) return;
+        s.stop();
     }
 };
