@@ -9,7 +9,7 @@ const SYMBOL_TEXTURES = [
     'symbol5.png',
 ];
 
-const SPIN_SPEED = 50; // Pixels per frame
+const SPIN_SPEED = 10; // Pixels per frame
 const SLOWDOWN_RATE = 0.95; // Rate at which the reel slows down
 
 export class Reel {
@@ -27,24 +27,59 @@ export class Reel {
         this.symbolCount = symbolCount;
 
         this.createSymbols();
+
+        // Add a rectangular mask so symbols outside bounds are not visible
+        const mask = new PIXI.Graphics();
+        mask.beginFill(0xffffff, 1);
+        mask.drawRect(0, 0, this.symbolCount * this.symbolSize, this.symbolSize);
+        mask.endFill();
+        this.container.addChild(mask);
+        this.container.mask = mask;
     }
 
     private createSymbols(): void {
         // Create symbols for the reel, arranged horizontally
+        for (let i = 0; i < this.symbolCount; i++) {
+            const symbol = this.createRandomSymbol();
+            symbol.width = this.symbolSize;
+            symbol.height = this.symbolSize;
+            symbol.x = i * this.symbolSize;
+            symbol.y = 0;
+            this.container.addChild(symbol);
+            this.symbols.push(symbol);
+        }
     }
 
     private createRandomSymbol(): PIXI.Sprite {
-        // TODO:Get a random symbol texture
-
-        // TODO:Create a sprite with the texture
-
-        return new PIXI.Sprite();
+        // Get a random symbol texture and create a sprite
+        const randomIndex = Math.floor(Math.random() * SYMBOL_TEXTURES.length);
+        const textureName = SYMBOL_TEXTURES[randomIndex];
+        const texture = AssetLoader.getTexture(textureName);
+        return new PIXI.Sprite(texture);
     }
 
     public update(delta: number): void {
         if (!this.isSpinning && this.speed === 0) return;
 
-        // TODO:Move symbols horizontally
+        // Move symbols horizontally (leftward)
+        if (this.isSpinning) {
+            this.speed = SPIN_SPEED;
+        }
+
+        const deltaPixels = this.speed * delta;
+        const totalWidth = this.symbolCount * this.symbolSize;
+
+        for (const symbol of this.symbols) {
+            symbol.x -= deltaPixels;
+
+            // Wrap symbol to the right side when it exits left
+            while (symbol.x < -this.symbolSize) {
+                symbol.x += totalWidth;
+            }
+            while (symbol.x >= totalWidth) {
+                symbol.x -= totalWidth;
+            }
+        }
 
         // If we're stopping, slow down the reel
         if (!this.isSpinning && this.speed > 0) {
@@ -59,8 +94,12 @@ export class Reel {
     }
 
     private snapToGrid(): void {
-        // TODO: Snap symbols to horizontal grid positions
-
+        // Snap symbols to horizontal grid positions and normalize ordering
+        // Sort by x so they align from left to right
+        const sorted = [...this.symbols].sort((a, b) => a.x - b.x);
+        for (let i = 0; i < sorted.length; i++) {
+            sorted[i].x = i * this.symbolSize;
+        }
     }
 
     public startSpin(): void {
