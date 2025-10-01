@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import type { ISkeletonData } from 'pixi-spine';
 import { sound } from './sound';
 
 // Asset paths
@@ -31,7 +32,12 @@ const SOUNDS = [
 ];
 
 const textureCache: Record<string, PIXI.Texture> = {};
-const spineCache: Record<string, any> = {};
+
+export interface SpineAsset {
+    spineData: ISkeletonData;
+}
+
+const spineCache: Record<string, SpineAsset> = {};
 
 export class AssetLoader {
     constructor() {
@@ -62,7 +68,7 @@ export class AssetLoader {
                 console.log('Spine animations loaded successfully');
 
                 for (const [key, spine] of Object.entries(spineAssets)) {
-                    spineCache[key] = spine;
+                    spineCache[key] = spine as SpineAsset;
                 }
             } catch (error) {
                 console.error('Error loading spine animations:', error);
@@ -91,7 +97,7 @@ export class AssetLoader {
         return textureCache[name];
     }
 
-    public static getSpine(name: string): any {
+    public static getSpine(name: string): SpineAsset | undefined {
         return spineCache[name];
     }
 }
